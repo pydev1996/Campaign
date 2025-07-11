@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Amazon Campaign Builder</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .section { border: 1px solid #ccc; padding: 15px; margin-top: 20px; }
+    .hidden { display: none; }
+    input, select { margin-bottom: 10px; width: 300px; }
+    label { display: block; margin-top: 10px; }
+  </style>
+  <script>
+    function generateAdGroups() {
+      const adGroupCount = parseInt(document.getElementById("adgroup_count").value);
+      const productCount = parseInt(document.getElementById("product_count").value);
+      const keywordCount = parseInt(document.getElementById("keyword_count").value);
+      const container = document.getElementById("adgroup_container");
+      container.innerHTML = "";
+
+      for (let i = 0; i < adGroupCount; i++) {
+        const groupId = `AG${i + 1}`;
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "section";
+        let html = `<h3>Ad Group ${i + 1}</h3>`;
+        html += `<label>Ad Group Name:</label><input type="text" name="adgroup_names" required><br>`;
+
+        for (let j = 0; j < productCount; j++) {
+          html += `<label>Product ${j + 1} (ASIN/SKU):</label><input type="text" name="${groupId}_products"><br>`;
+        }
+
+        html += `<div class="auto_section hidden"><h4>Auto Targeting Bids</h4>`;
+        ["close", "loose", "substitutes", "complements"].forEach(t => {
+          html += `<label>${t} Bid:</label><input type="number" name="${groupId}_${t}_bid"><br>`;
+        });
+        html += `</div>`;
+
+        html += `<div class="kw_section hidden"><h4>Keyword Targeting</h4>`;
+        for (let k = 0; k < keywordCount; k++) {
+          html += `<input type="text" name="${groupId}_kw_${k}" placeholder="Keyword">
+                   <select name="${groupId}_kw_match_${k}">
+                     <option value="Broad">Broad</option>
+                     <option value="Phrase">Phrase</option>
+                     <option value="Exact">Exact</option>
+                   </select>
+                   <input type="number" name="${groupId}_kw_bid_${k}" placeholder="Bid"><br>`;
+        }
+        html += `</div>`;
+
+        html += `<div class="pt_section hidden"><h4>Product Targeting</h4>`;
+        for (let p = 0; p < keywordCount; p++) {
+          html += `<input type="text" name="${groupId}_pt_asin_${p}" placeholder="ASIN">
+                   <select name="${groupId}_pt_type_${p}">
+                     <option value="Exact">Exact</option>
+                     <option value="Expanded">Expanded</option>
+                   </select>
+                   <input type="number" name="${groupId}_pt_bid_${p}" placeholder="Bid"><br>`;
+        }
+        html += `</div>`;
+
+        groupDiv.innerHTML = html;
+        container.appendChild(groupDiv);
+      }
+
+      toggleSections();
+    }
+
+    function toggleSections() {
+      const type = document.getElementById("campaign_type").value;
+      document.querySelectorAll(".auto_section").forEach(div => {
+        div.style.display = (type === "auto") ? "block" : "none";
+      });
+      document.querySelectorAll(".kw_section").forEach(div => {
+        div.style.display = (type === "manual_kw") ? "block" : "none";
+      });
+      document.querySelectorAll(".pt_section").forEach(div => {
+        div.style.display = (type === "manual_pt") ? "block" : "none";
+      });
+    }
+  </script>
+</head>
+<body>
+  <h2>Amazon Campaign Builder</h2>
+  <form method="POST">
+    <div class="section">
+      <label>Campaign Name:</label><input type="text" name="campaign_name" required><br>
+      <label>Campaign Type:</label>
+      <select name="campaign_type" id="campaign_type" onchange="toggleSections()" required>
+        <option value="auto">Auto</option>
+        <option value="manual_kw">Manual - Keyword</option>
+        <option value="manual_pt">Manual - Product Targeting</option>
+      </select><br>
+      <label>Daily Budget:</label><input type="number" name="budget" min="500" required><br>
+
+      <label>Bidding Strategy:</label>
+      <select name="strategy">
+        <option value="dynamic bids - up and down">Dynamic Up and Down</option>
+        <option value="dynamic bids - down only">Dynamic Down Only</option>
+        <option value="fixed bids">Fixed Bid</option>
+      </select><br>
+      <label>Ad Group Count:</label><input type="number" id="adgroup_count" value="3"><br>
+      <label>Products per Ad Group:</label><input type="number" id="product_count" value="3"><br>
+      <label>No of Keywords / Product Targets per Group:</label><input type="number" id="keyword_count" value="10"><br>
+      <h4>Placement Bid Adjustments (%)</h4>
+      <label>Product Page:</label><input type="number" name="product_page" value="0"><br>
+      <label>Amazon Business:</label><input type="number" name="amazon_business" value="0"><br>
+      <label>Rest Of Search:</label><input type="number" name="rest_search" value="0"><br>
+      <label>Top of Search:</label><input type="number" name="top_search" value="0"><br>
+      <button type="button" onclick="generateAdGroups()">Generate Ad Groups</button>
+    </div>
+    <div id="adgroup_container"></div>
+    <input type="submit" value="Generate Excel">
+  </form>
+</body>
+</html>
